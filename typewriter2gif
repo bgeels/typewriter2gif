@@ -1,0 +1,157 @@
+#!/usr/bin/python3
+from PIL import Image, ImageColor, ImageDraw, ImageFont
+import argparse
+
+# parse command line arguments
+parser = argparse.ArgumentParser(
+    add_help    = False,
+    description = 'Generates a .gif of text as if it is being typed'
+)
+
+parser.add_argument( '-s', '--string',
+    type     = str,
+    help     = 'The string to type out in the image'
+)
+
+parser.add_argument( '-fs', '--font_size',
+    type     = int,
+    default  = 25,
+    help     = 'The size of the font used'
+)
+
+parser.add_argument( '-n', '--name',
+    type     = str,
+    default  = 'out.gif',
+    help     = 'The name of the output file' 
+)
+
+parser.add_argument( '-d', '--duration',
+    type     = int,
+    default  = 200,
+    help     = 'The duration of the gif' 
+)
+
+parser.add_argument( '-w', '--width',
+    type     = int,
+    default  = 250,
+    help     = 'The width of the image'
+)
+
+parser.add_argument( '-h', '--height',
+    type     = int,
+    default  = 40,
+    help     = 'The height of the image'
+)
+
+parser.add_argument( '-va', '--vertical_align',
+    type     = str,
+    default  = 'middle',
+    choices  = [ 'top', 'middle', 'bottom' ],
+    help     = 'How to vertically align the text'
+)
+
+parser.add_argument( '-ha', '--horizontal_align',
+    type     = str,
+    default  = 'left',
+    choices  = [ 'left', 'middle', 'right' ],
+    help     = 'How to horizontally align the text'
+)
+
+parser.add_argument( '-x', '--x_offset',
+    type     = int,
+    default  = None,
+    help     = 'Offsets the horizontal position of the text'
+)
+
+parser.add_argument( '-y', '--y_offset',
+    type     = int,
+    default  = None,
+    help     = 'Offsets the vertical position of the text'
+)
+
+parser.add_argument( '-c', '--color',
+    type     = str,
+    default  = '#222',
+    help     = 'The text color'
+)
+
+parser.add_argument( '-b', '--background_color',
+    type     = str,
+    default  = '#fff',
+    help     = 'The background color'
+)
+
+
+args = parser.parse_args()
+
+def main():
+
+    # A list of the frames to be outputted
+    frames = []
+
+    string_so_far = ''
+    # Loop over each frame in the animated image
+    for char in args.string:
+        string_so_far += char
+
+
+        # create a new image for our frame
+        im = Image.new(
+            'RGBA',
+            (args.width, args.height),
+            ImageColor.getrgb(args.background_color)
+        )
+        draw = ImageDraw.Draw(im)
+
+        # set the font and determine the dimensions of our text
+        font = ImageFont.truetype("fonts/helvetica.ttf", args.font_size)
+        str_width, str_height = draw.textsize(string_so_far,
+            font = font
+        )
+
+        # Determine what to set the x coordinate to given the
+        # horizontal_align argument.
+        x = None
+        if( args.horizontal_align == 'middle' ):
+            x = ( args.width / 2 ) - ( str_width / 2 )
+        elif( args.horizontal_align == 'left' ):
+            x = 0 
+        elif( args.horizontal_align == 'right' ):
+            x = args.width - str_width 
+
+        # Determine what to set the y coordinate to given the
+        # vertical_align argument.
+        y = None
+        if( args.vertical_align == 'middle' ):
+            y = ( args.height / 2 ) - ( str_height / 2 )
+        elif( args.vertical_align == 'bottom' ):
+            y = args.height - str_height
+        elif( args.vertical_align == 'top' ):
+            y = 0 
+
+        # apply x and y offsets
+        x = 0 
+        if( args.x_offset is not None ):
+            x += args.x_offset
+        if( args.y_offset is not None ):
+            y += args.y_offset
+
+        # draw our text on this frame
+        draw.text( (x, y), string_so_far,
+            font      = font,
+            fill      = ImageColor.getrgb(args.color)
+        )
+
+        # append this image onto our set of frames
+        frames.append(im)
+
+
+    # save the set of frames as a new image
+    frames[0].save( args.name,
+        save_all      = True,
+        append_images = frames[1:],
+        optimize      = False,
+        duration      = args.duration 
+    )
+
+main()
