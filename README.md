@@ -25,7 +25,7 @@ sudo pip3 install Pillow
 
 #### 3.) 
 ```
-
+./typewriter2gif --s 'Twice from the bottom right now!' -c '#008880' -b '#004440' -fs 25 -h 50 -w 430 -va bottom -ha right -l 1 -d 100
 ```
 
 ![foo](examples/3.gif)
