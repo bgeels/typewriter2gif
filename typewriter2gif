@@ -81,19 +81,33 @@ parser.add_argument( '-b', '--background_color',
     help     = 'The background color'
 )
 
+parser.add_argument( '-l', '--loop',
+    type     = int,
+    default  = None,
+    help     = 'The number of times to loop. ( 0 is loop forever; omit this to not loop at all )'
+)
 
 args = parser.parse_args()
 
 def main():
 
-    # A list of the frames to be outputted
-    frames = []
+    # create our font
+    font = ImageFont.truetype("fonts/helvetica.ttf", args.font_size)
 
+    # determine the height of the full text here
+    str_height = ImageDraw.Draw(Image.new(
+        'RGBA',
+        (args.width, args.height),
+        ImageColor.getrgb(args.background_color)
+    )).textsize(args.string,
+        font = font
+    )[1]
+
+    frames = []
     string_so_far = ''
     # Loop over each frame in the animated image
     for char in args.string:
         string_so_far += char
-
 
         # create a new image for our frame
         im = Image.new(
@@ -104,10 +118,9 @@ def main():
         draw = ImageDraw.Draw(im)
 
         # set the font and determine the dimensions of our text
-        font = ImageFont.truetype("fonts/helvetica.ttf", args.font_size)
-        str_width, str_height = draw.textsize(string_so_far,
+        str_width = draw.textsize(string_so_far,
             font = font
-        )
+        )[0]
 
         # Determine what to set the x coordinate to given the
         # horizontal_align argument.
@@ -130,7 +143,6 @@ def main():
             y = 0 
 
         # apply x and y offsets
-        x = 0 
         if( args.x_offset is not None ):
             x += args.x_offset
         if( args.y_offset is not None ):
@@ -145,13 +157,17 @@ def main():
         # append this image onto our set of frames
         frames.append(im)
 
+    save_args = {
+        'save_all':      True,
+        'append_images': frames[1:],
+        'optimize':      False,
+        'duration':      args.duration 
+    }
+
+    if( args.loop is not None ):
+        save_args['loop'] = args.loop
 
     # save the set of frames as a new image
-    frames[0].save( args.name,
-        save_all      = True,
-        append_images = frames[1:],
-        optimize      = False,
-        duration      = args.duration 
-    )
+    frames[0].save( args.name, **save_args )
 
 main()
