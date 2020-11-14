@@ -14,4 +14,4 @@ sudo pip3 install Pillow
 ./typewriter2gif --s 'Hello World!' -c '#888000' -b '#333000' -fs 80 -h 50 -w 435
 ```
 
-![](example/1.gif)
+![foo](examples/1.gif)
